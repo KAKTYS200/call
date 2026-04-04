@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>GameChats | Голосовой чат с сохранением профиля</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo h1 {
+            font-size: 48px;
+            background: linear-gradient(135deg, #00ff88, #00bfff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .logo p {
+            color: #888;
+        }
+        
+        .profile-section {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+        .profile-editor {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .avatar-preview {
+            text-align: center;
+        }
+        .avatar-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff88, #00bfff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+            overflow: hidden;
+            position: relative;
+        }
+        .avatar-img:hover::after {
+            content: "✏️";
+            position: absolute;
+            background: rgba(0,0,0,0.7);
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .avatar-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .avatar-input {
+            display: none;
+        }
+        .nick-input {
+            flex: 1;
+            min-width: 200px;
+        }
+        .nick-input input {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .save-profile {
+            padding: 12px 25px;
+            background: #00ff88;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .save-profile:hover {
+            transform: scale(1.02);
+            background: #00cc66;
+        }
+        
+        .codes-section {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .code-card {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+        .code-card h4 {
+            color: #00ff88;
+            margin-bottom: 10px;
+        }
+        .code-value {
+            font-size: 28px;
+            font-weight: bold;
+            font-family: monospace;
+            background: #000;
+            padding: 10px;
+            border-radius: 10px;
+            color: #00ff88;
+            letter-spacing: 3px;
+            word-break: break-all;
+        }
+        .copy-btn {
+            margin-top: 10px;
+            padding: 5px 15px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .copy-btn:hover {
+            background: #555;
+        }
+        
+        .two-rows {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .card {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            min-width: 250px;
+        }
+        .card h3 {
+            color: #00ff88;
+            margin-bottom: 15px;
+        }
+        .card input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .card button {
+            width: 100%;
+            padding: 12px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .join-btn { background: #00ff88; color: #000; }
+        .call-btn { background: #ffaa00; color: #000; }
+        .card button:hover { transform: translateY(-2px); filter: brightness(1.05); }
+        
+        .main-content {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .users-panel {
+            flex: 1;
+            min-width: 280px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .users-panel h3 {
+            color: #fff;
+            margin-bottom: 15px;
+        }
+        .user-item {
+            background: rgba(255,255,255,0.15);
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .user-item:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateX(5px);
+        }
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff88, #00bfff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            overflow: hidden;
+        }
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .user-info {
+            flex: 1;
+        }
+        .user-nick {
+            font-weight: bold;
+            color: #fff;
+        }
+        .user-id {
+            font-size: 11px;
+            color: #888;
+        }
+        .private-badge {
+            background: #ffaa00;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .chat-panel {
+            flex: 2;
+            min-width: 300px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+        }
+        .private-indicator {
+            background: linear-gradient(135deg, #ffaa00, #ff8800);
+            color: #000;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+        .private-indicator button {
+            margin-left: 10px;
+            background: #000;
+            color: #ffaa00;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .messages {
+            flex: 1;
+            height: 350px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 10px;
+        }
+        .message {
+            background: rgba(255,255,255,0.15);
+            margin: 8px 0;
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .message-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #00ff88;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            overflow: hidden;
+        }
+        .message-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .message-content {
+            flex: 1;
+            color: #fff;
+        }
+        .message-nick {
+            font-weight: bold;
+            font-size: 12px;
+            color: #00ff88;
+        }
+        .message-text {
+            word-break: break-word;
+        }
+        .message.system {
+            justify-content: center;
+            background: rgba(0,255,136,0.2);
+            font-style: italic;
+            color: #00ff88;
+        }
+        .message.private {
+            background: rgba(255,170,0,0.3);
+            border-left: 3px solid #ffaa00;
+        }
+        .message-input {
+            display: flex;
+            gap: 10px;
+        }
+        .message-input input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+        }
+        .message-input button {
+            padding: 12px 25px;
+            background: #00ff88;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .mic-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            background: #ff4444;
+            color: white;
+            transition: all 0.3s;
+        }
+        .mic-btn.active {
+            background: #00ff88;
+            color: black;
+        }
+        .status-info {
+            background: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #ffaa00;
+            font-size: 14px;
+        }
+        .ip-info {
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .saved-badge {
+            font-size: 10px;
+            color: #00ff88;
+            margin-left: 10px;
+        }
+        @media (max-width: 768px) {
+            .logo h1 { font-size: 32px; }
+            .code-value { font-size: 20px; }
+        }
+    </style>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>🎮 GameChats</h1>
+            <p>Голосовой чат | Профиль сохраняется навсегда</p>
+        </div>
+
+        <div class="profile-section">
+            <div class="profile-editor">
+                <div class="avatar-preview">
+                    <div class="avatar-img" id="avatarPreview" onclick="document.getElementById('avatarInput').click()">
+                        🎮
+                    </div>
+                    <input type="file" id="avatarInput" class="avatar-input" accept="image/*">
+                </div>
+                <div class="nick-input">
+                    <input type="text" id="nickInput" placeholder="Ваш никнейм" maxlength="20">
+                    <button class="save-profile" id="saveProfileBtn">💾 Сохранить профиль</button>
+                </div>
+            </div>
+            <div style="margin-top: 10px; font-size: 12px; color: #00ff88; text-align: center;" id="saveStatus">
+                💾 Профиль автоматически сохраняется
+            </div>
+        </div>
+
+        <div class="codes-section">
+            <div class="code-card">
+                <h4>🎯 Ваш уникальный код (привязан к IP)</h4>
+                <div class="code-value" id="myCode">Загрузка...</div>
+                <button class="copy-btn" onclick="copyToClipboard('myCode')">📋 Копировать</button>
+            </div>
+            <div class="code-card" id="callCodeCard" style="display:none;">
+                <h4>🔐 Код активного звонка</h4>
+                <div class="code-value" id="callCode"></div>
+                <button class="copy-btn" onclick="copyToClipboard('callCode')">📋 Копировать</button>
+            </div>
+        </div>
+
+        <div class="two-rows">
+            <div class="card">
+                <h3>🔊 Присоединиться к комнате</h3>
+                <input type="text" id="roomCode" placeholder="Код комнаты">
+                <button id="joinRoomBtn" class="join-btn">🎮 Войти в комнату</button>
+            </div>
+            <div class="card">
+                <h3>📞 Позвонить по коду</h3>
+                <input type="text" id="directCallCode" placeholder="Код игрока">
+                <button id="directCallBtn" class="call-btn">📞 Позвонить</button>
+            </div>
+        </div>
+
+        <div class="status-info" id="statusMessage">
+            💡 Профиль сохраняется автоматически! При следующем заходе всё будет на месте.
+        </div>
+
+        <div class="main-content">
+            <div class="users-panel">
+                <h3>👥 В комнате (<span id="userCount">0</span>)</h3>
+                <div id="usersList">
+                    <div style="color:#888; text-align:center;">Нет активной комнаты</div>
+                </div>
+                <div class="ip-info" id="ipDisplay">🌐 Определение IP...</div>
+            </div>
+
+            <div class="chat-panel">
+                <div id="privateIndicator" class="private-indicator">
+                    🔒 Личный разговор с <span id="privateWithName"></span>
+                    <button id="exitPrivateBtn">Выйти</button>
+                </div>
+                <div id="messages" class="messages">
+                    <div class="message system">📢 Добро пожаловать в GameChats!</div>
+                </div>
+                <div class="message-input">
+                    <input type="text" id="messageInput" placeholder="💬 Сообщение...">
+                    <button id="sendBtn">📨 Отправить</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="micBtn" class="mic-btn active">🎤 Выключить микрофон</button>
+            <button id="leaveRoomBtn" style="background:#ff4444; color:white; padding:12px 25px; border:none; border-radius:10px; cursor:pointer;">🚪 Выйти из комнаты</button>
+            <button id="endCallBtn" style="background:#ff4444; color:white; padding:12px 25px; border:none; border-radius:10px; cursor:pointer; display:none;">📞 Завершить звонок</button>
+        </div>
+    </div>
+
+    <script>
+        // ============= GameChats с сохранением профиля в localStorage =============
+        let myIp = null;
+        let myId = null;
+        let peer = null;
+        let localStream = null;
+        
+        // Профиль (загружаем из localStorage)
+        let myNick = localStorage.getItem('gamechats_nick') || `Игрок`;
+        let myAvatar = localStorage.getItem('gamechats_avatar') || null;
+        
+        // Состояния
+        let currentRoom = null;
+        let activeCall = null;
+        let activeCallCode = null;
+        let roomConnections = new Map();
+        let roomUsers = new Map();
+        let privateWith = null;
+        let allDataConnections = new Map();
+        
+        let micEnabled = true;
+        
+        // DOM элементы
+        const myCodeEl = document.getElementById('myCode');
+        const callCodeCard = document.getElementById('callCodeCard');
+        const callCodeEl = document.getElementById('callCode');
+        const usersListEl = document.getElementById('usersList');
+        const messagesEl = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const privateIndicator = document.getElementById('privateIndicator');
+        const privateWithName = document.getElementById('privateWithName');
+        const statusMessage = document.getElementById('statusMessage');
+        const userCountSpan = document.getElementById('userCount');
+        const nickInput = document.getElementById('nickInput');
+        const avatarPreview = document.getElementById('avatarPreview');
+        const avatarInput = document.getElementById('avatarInput');
+        const endCallBtn = document.getElementById('endCallBtn');
+        const ipDisplay = document.getElementById('ipDisplay');
+        const saveStatus = document.getElementById('saveStatus');
+        
+        // Загружаем сохраненный ник
+        nickInput.value = myNick;
+        
+        // Загружаем сохраненную аватарку
+        if (myAvatar) {
+            updateAvatarPreview();
+        }
+        
+        // ============= Сохранение профиля =============
+        function saveProfileToLocalStorage() {
+            localStorage.setItem('gamechats_nick', myNick);
+            if (myAvatar) {
+                localStorage.setItem('gamechats_avatar', myAvatar);
+            } else {
+                localStorage.removeItem('gamechats_avatar');
+            }
+            saveStatus.innerHTML = '✅ Профиль сохранен! ' + new Date().toLocaleTimeString();
+            saveStatus.style.color = '#00ff88';
+            setTimeout(() => {
+                saveStatus.innerHTML = '💾 Профиль автоматически сохраняется';
+                saveStatus.style.color = '#00ff88';
+            }, 2000);
+        }
+        
+        // ============= Получение IP и генерация ID на основе IP =============
+        async function getIpAndGenerateId() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                myIp = data.ip;
+                ipDisplay.innerHTML = `🌐 Ваш IP: ${myIp} | Код привязан к IP`;
+                
+                let hash = 0;
+                for (let i = 0; i < myIp.length; i++) {
+                    hash = ((hash << 5) - hash) + myIp.charCodeAt(i);
+                    hash |= 0;
+                }
+                const positiveHash = Math.abs(hash);
+                myId = positiveHash.toString(36).substring(0, 8).toUpperCase();
+                
+                myCodeEl.textContent = myId;
+                
+                // Если ник не был сохранен, создаем на основе ID
+                if (!localStorage.getItem('gamechats_nick')) {
+                    myNick = `Игрок${myId.slice(-4)}`;
+                    nickInput.value = myNick;
+                }
+                
+                addSystemMessage(`✅ Ваш уникальный код (привязан к IP ${myIp}): ${myId}`);
+                addSystemMessage(`💾 Профиль сохранен в браузере! При следующем заходе всё будет на месте.`);
+                statusMessage.innerHTML = `✅ Код привязан к вашему IP (${myIp}) | Профиль сохранен локально`;
+                
+                initPeer();
+            } catch (err) {
+                console.error('IP fetch error:', err);
+                myId = localStorage.getItem('gamechats_id');
+                if (!myId) {
+                    myId = Math.random().toString(36).substring(2, 10).toUpperCase();
+                    localStorage.setItem('gamechats_id', myId);
+                }
+                myCodeEl.textContent = myId;
+                ipDisplay.innerHTML = `🌐 IP не определен (оффлайн режим) | Код сохранен`;
+                addSystemMessage(`⚠️ Не удалось определить IP, код сохранен в браузере: ${myId}`);
+                initPeer();
+            }
+        }
+        
+        // ============= Аватарка =============
+        avatarInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    myAvatar = event.target.result;
+                    updateAvatarPreview();
+                    saveProfileToLocalStorage();
+                    
+                    // Отправляем обновление всем в комнате
+                    roomConnections.forEach((conn, userId) => {
+                        if (conn.send) {
+                            conn.send({ type: 'profile_update', nick: myNick, avatar: myAvatar });
+                        }
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+        
+        function updateAvatarPreview() {
+            if (myAvatar && myAvatar !== 'null') {
+                avatarPreview.innerHTML = `<img src="${myAvatar}" alt="avatar">`;
+            } else {
+                avatarPreview.innerHTML = '🎮';
+                avatarPreview.style.fontSize = '40px';
+            }
+        }
+        
+        function saveProfile() {
+            const newNick = nickInput.value.trim();
+            if (newNick && newNick !== myNick) {
+                myNick = newNick;
+                saveProfileToLocalStorage();
+                addSystemMessage(`✅ Ник изменен на: ${myNick}`);
+                
+                // Отправляем обновление всем в комнате
+                roomConnections.forEach((conn, userId) => {
+                    if (conn.send) {
+                        conn.send({ type: 'profile_update', nick: myNick, avatar: myAvatar });
+                    }
+                });
+                updateUsersList();
+            } else if (!newNick) {
+                addSystemMessage(`❌ Ник не может быть пустым`);
+            } else {
+                addSystemMessage(`ℹ️ Ник не изменился`);
+            }
+        }
+        
+        document.getElementById('saveProfileBtn').onclick = saveProfile;
+        
+        // ============= Инициализация Peer =============
+        function initPeer() {
+            peer = new Peer(myId, {
+                host: '0.peerjs.com',
+                port: 443,
+                secure: true,
+                path: '/',
+                debug: 2
+            });
+            
+            peer.on('open', () => {
+                addSystemMessage(`✅ PeerJS подключен! Ваш ID: ${myId}`);
+                startMicrophone();
+            });
+            
+            peer.on('call', (call) => {
+                console.log('Incoming call from:', call.peer);
+                handleIncomingDirectCall(call);
+            });
+            
+            peer.on('connection', (conn) => {
+                console.log('Data connection from:', conn.peer);
+                setupDataConnection(conn);
+            });
+            
+            peer.on('error', (err) => {
+                console.error('Peer error:', err);
+                addSystemMessage(`⚠️ Ошибка соединения: ${err.type}`);
+            });
+        }
+        
+        // ============= Настройка data соединения =============
+        function setupDataConnection(conn) {
+            allDataConnections.set(conn.peer, conn);
+            
+            conn.on('open', () => {
+                console.log('Data connection opened with:', conn.peer);
+                conn.send({ type: 'profile', nick: myNick, avatar: myAvatar, userId: myId });
+            });
+            
+            conn.on('data', (data) => {
+                handleDataMessage(data, conn.peer);
+            });
+            
+            conn.on('close', () => {
+                allDataConnections.delete(conn.peer);
+            });
+        }
+        
+        // ============= Микрофон =============
+        async function startMicrophone() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                updateMicButton(true);
+                addSystemMessage('🎤 Микрофон готов');
+            } catch (err) {
+                console.error('Microphone error:', err);
+                addSystemMessage('❌ Нет доступа к микрофону! Разрешите доступ в браузере');
+            }
+        }
+        
+        function toggleMic() {
+            if (localStream) {
+                localStream.getAudioTracks().forEach(track => track.enabled = !micEnabled);
+                micEnabled = !micEnabled;
+                updateMicButton(micEnabled);
+                addSystemMessage(micEnabled ? '🎤 Микрофон включен' : '🔇 Микрофон выключен');
+            }
+        }
+        
+        function updateMicButton(enabled) {
+            const btn = document.getElementById('micBtn');
+            if (enabled) {
+                btn.textContent = '🔇 Выключить микрофон';
+                btn.classList.add('active');
+            } else {
+                btn.textContent = '🎤 Включить микрофон';
+                btn.classList.remove('active');
+            }
+        }
+        
+        // ============= Аудио =============
+        let audioElements = new Map();
+        
+        function playAudioStream(stream, userId) {
+            const audio = new Audio();
+            audio.srcObject = stream;
+            audio.autoplay = true;
+            audioElements.set(userId, audio);
+        }
+        
+        function stopAllAudio() {
+            audioElements.forEach(audio => {
+                audio.pause();
+                audio.srcObject = null;
+            });
+            audioElements.clear();
+        }
+        
+        // ============= Генерация кода звонка =============
+        function generateCallCode() {
+            return Math.random().toString(36).substring(2, 10).toUpperCase();
+        }
+        
+        // ============= Присоединиться к комнате =============
+        function joinRoom(roomId) {
+            if (currentRoom) leaveRoom();
+            
+            currentRoom = roomId;
+            statusMessage.innerHTML = `🎮 Вы в комнате: ${roomId}`;
+            addSystemMessage(`🔗 Подключение к комнате ${roomId}...`);
+            
+            const conn = peer.connect(roomId);
+            setupDataConnection(conn);
+            
+            conn.on('open', () => {
+                addSystemMessage(`✅ Подключено к комнате ${roomId}`);
+                conn.send({ type: 'join_room', userId: myId, nick: myNick, avatar: myAvatar });
+            });
+            
+            roomConnections.set(roomId, conn);
+        }
+        
+        function leaveRoom() {
+            if (!currentRoom) return;
+            
+            roomConnections.forEach((conn, userId) => {
+                if (conn.send && userId !== currentRoom) {
+                    conn.send({ type: 'leave_room', userId: myId });
+                }
+                if (conn.close) conn.close();
+            });
+            
+            roomConnections.clear();
+            roomUsers.clear();
+            privateWith = null;
+            currentRoom = null;
+            privateIndicator.style.display = 'none';
+            stopAllAudio();
+            updateUsersList();
+            statusMessage.innerHTML = '💡 Выберите действие';
+            addSystemMessage('🚪 Вы вышли из комнаты');
+            endCallBtn.style.display = 'none';
+            callCodeCard.style.display = 'none';
+        }
+        
+        // ============= Обработка сообщений =============
+        function handleDataMessage(data, fromId) {
+            console.log('Data message:', data.type, 'from:', fromId);
+            
+            switch(data.type) {
+                case 'join_room':
+                    if (fromId !== myId && !roomUsers.has(fromId)) {
+                        roomUsers.set(fromId, { nick: data.nick || fromId, avatar: data.avatar, stream: null });
+                        updateUsersList();
+                        addSystemMessage(`👤 ${data.nick || fromId} присоединился к комнате`);
+                        
+                        if (localStream) {
+                            const call = peer.call(fromId, localStream);
+                            call.on('stream', (stream) => {
+                                const user = roomUsers.get(fromId);
+                                if (user) user.stream = stream;
+                                if (!privateWith) playAudioStream(stream, fromId);
+                            });
+                            roomConnections.set(`call_${fromId}`, call);
+                        }
+                    }
+                    break;
+                    
+                case 'profile_update':
+                case 'profile':
+                    const user = roomUsers.get(fromId);
+                    if (user) {
+                        user.nick = data.nick;
+                        user.avatar = data.avatar;
+                        updateUsersList();
+                    }
+                    break;
+                    
+                case 'leave_room':
+                    roomUsers.delete(data.userId);
+                    updateUsersList();
+                    addSystemMessage(`👋 ${data.userId} покинул комнату`);
+                    if (privateWith === data.userId) exitPrivateChat();
+                    break;
+                    
+                case 'private_request':
+                    const targetUser = roomUsers.get(fromId);
+                    const targetNick = targetUser?.nick || fromId;
+                    if (confirm(`🎮 ${targetNick} хочет поговорить лично. Принять?`)) {
+                        startPrivateChat(fromId);
+                        const conn = roomConnections.get(fromId);
+                        if (conn && conn.send) conn.send({ type: 'private_accept', from: myId });
+                    }
+                    break;
+                    
+                case 'private_accept':
+                    startPrivateChat(fromId);
+                    addSystemMessage(`✅ ${roomUsers.get(fromId)?.nick || fromId} принял приглашение`);
+                    break;
+                    
+                case 'exit_private':
+                    if (privateWith === fromId) {
+                        exitPrivateChat();
+                        addSystemMessage(`🔓 ${roomUsers.get(fromId)?.nick || fromId} вышел из личного чата`);
+                    }
+                    break;
+                    
+                case 'call_code':
+                    if (data.code && !activeCall) {
+                        activeCallCode = data.code;
+                        callCodeEl.textContent = activeCallCode;
+                        callCodeCard.style.display = 'block';
+                    }
+                    break;
+                    
+                case 'chat_message':
+                    const sender = roomUsers.get(fromId);
+                    if (data.isPrivate && privateWith === fromId) {
+                        addMessage(sender?.nick || fromId, data.text, sender?.avatar, 'private');
+                    } else if (!data.isPrivate && currentRoom) {
+                        addMessage(sender?.nick || fromId, data.text, sender?.avatar);
+                    }
+                    break;
+            }
+        }
+        
+        // ============= Личный разговор в комнате =============
+        function requestPrivateChat(userId) {
+            if (userId === myId) {
+                addSystemMessage("❌ Нельзя поговорить с самим собой");
+                return;
+            }
+            const conn = roomConnections.get(userId);
+            if (conn && conn.send) {
+                conn.send({ type: 'private_request', from: myId });
+                addSystemMessage(`📞 Запрос на личный разговор отправлен ${roomUsers.get(userId)?.nick || userId}`);
+            } else {
+                addSystemMessage(`❌ Не удалось отправить запрос: игрок не в сети`);
+            }
+        }
+        
+        function startPrivateChat(userId) {
+            if (privateWith) exitPrivateChat();
+            privateWith = userId;
+            const user = roomUsers.get(userId);
+            privateWithName.textContent = user?.nick || userId;
+            privateIndicator.style.display = 'block';
+            
+            stopAllAudio();
+            if (user && user.stream) {
+                playAudioStream(user.stream, userId);
+            }
+            updateUsersList();
+            addSystemMessage(`🔒 Личный разговор с ${user?.nick || userId}. Остальные вас не слышат!`);
+        }
+        
+        function exitPrivateChat() {
+            if (privateWith) {
+                const conn = roomConnections.get(privateWith);
+                if (conn && conn.send) conn.send({ type: 'exit_private', from: myId });
+                
+                privateWith = null;
+                privateIndicator.style.display = 'none';
+                
+                stopAllAudio();
+                roomUsers.forEach((user, userId) => {
+                    if (user.stream) playAudioStream(user.stream, userId);
+                });
+                updateUsersList();
+                addSystemMessage(`🔓 Вы вышли из личного чата. Теперь всех слышно!`);
+            }
+        }
+        
+        // ============= ПРЯМОЙ ЗВОНОК =============
+        async function makeDirectCall(targetId) {
+            if (targetId === myId) {
+                addSystemMessage("❌ Нельзя позвонить самому себе");
+                return;
+            }
+            if (!localStream) {
+                addSystemMessage("❌ Микрофон не готов. Разрешите доступ к микрофону");
+                return;
+            }
+            
+            const callCode = generateCallCode();
+            activeCallCode = callCode;
+            callCodeEl.textContent = callCode;
+            callCodeCard.style.display = 'block';
+            endCallBtn.style.display = 'block';
+            
+            addSystemMessage(`📞 Звонок ${targetId}... Код звонка: ${callCode}`);
+            
+            const dataConn = peer.connect(targetId);
+            dataConn.on('open', () => {
+                dataConn.send({ type: 'call_code', code: callCode, from: myId, nick: myNick, avatar: myAvatar });
+            });
+            allDataConnections.set(targetId, dataConn);
+            
+            const call = peer.call(targetId, localStream);
+            activeCall = call;
+            privateWith = targetId;
+            
+            call.on('stream', (remoteStream) => {
+                addSystemMessage(`✅ Соединение с ${targetId} установлено!`);
+                statusMessage.innerHTML = `📞 В разговоре с ${targetId} | Код: ${callCode}`;
+                stopAllAudio();
+                playAudioStream(remoteStream, targetId);
+                privateWithName.textContent = targetId;
+                privateIndicator.style.display = 'block';
+            });
+            
+            call.on('close', () => {
+                addSystemMessage(`❌ Звонок с ${targetId} завершен`);
+                endDirectCall();
+            });
+            
+            call.on('error', (err) => {
+                console.error('Call error:', err);
+                addSystemMessage(`❌ Ошибка звонка: ${targetId} не в сети`);
+                endDirectCall();
+            });
+        }
+        
+        function handleIncomingDirectCall(call) {
+            let incomingCallCode = null;
+            let callerNick = call.peer;
+            let callerAvatar = null;
+            
+            const dataConn = peer.connect(call.peer);
+            dataConn.on('open', () => {
+                dataConn.on('data', (data) => {
+                    if (data.type === 'call_code') {
+                        incomingCallCode = data.code;
+                        callerNick = data.nick || data.from;
+                        callerAvatar = data.avatar;
+                        
+                        if (confirm(`📞 Входящий звонок от ${callerNick}\nКод звонка: ${incomingCallCode}\nПринять?`)) {
+                            if (localStream) {
+                                call.answer(localStream);
+                                activeCall = call;
+                                activeCallCode = incomingCallCode;
+                                privateWith = call.peer;
+                                callCodeEl.textContent = incomingCallCode;
+                                callCodeCard.style.display = 'block';
+                                endCallBtn.style.display = 'block';
+                                statusMessage.innerHTML = `📞 В разговоре с ${callerNick} | Код: ${incomingCallCode}`;
+                                
+                                call.on('stream', (remoteStream) => {
+                                    addSystemMessage(`✅ Разговор с ${callerNick} начат`);
+                                    stopAllAudio();
+                                    playAudioStream(remoteStream, call.peer);
+                                    privateWithName.textContent = callerNick;
+                                    privateIndicator.style.display = 'block';
+                                });
+                                
+                                call.on('close', () => endDirectCall());
+                                call.on('error', () => endDirectCall());
+                            }
+                        } else {
+                            call.close();
+                        }
+                    }
+                });
+            });
+        }
+        
+        function endDirectCall() {
+            if (activeCall) {
+                activeCall.close();
+                activeCall = null;
+            }
+            activeCallCode = null;
+            privateWith = null;
+            privateIndicator.style.display = 'none';
+            callCodeCard.style.display = 'none';
+            endCallBtn.style.display = 'none';
+            statusMessage.innerHTML = currentRoom ? `🎮 Вы в комнате: ${currentRoom}` : '💡 Выберите действие';
+            stopAllAudio();
+            if (currentRoom) {
+                roomUsers.forEach((user, userId) => {
+                    if (user.stream) playAudioStream(user.stream, userId);
+                });
+            }
+            addSystemMessage('📞 Звонок завершен');
+        }
+        
+        // ============= Чат =============
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+            
+            if (privateWith && activeCall) {
+                addMessage(myNick, text, myAvatar, 'private');
+            } 
+            else if (privateWith && currentRoom) {
+                addMessage(myNick, text, myAvatar, 'private');
+                const conn = roomConnections.get(privateWith);
+                if (conn && conn.send) {
+                    conn.send({ type: 'chat_message', text, isPrivate: true, from: myId });
+                }
+            }
+            else if (currentRoom) {
+                addMessage(myNick, text, myAvatar);
+                roomConnections.forEach((conn, userId) => {
+                    if (userId !== currentRoom && userId !== myId && conn.send) {
+                        conn.send({ type: 'chat_message', text, isPrivate: false, from: myId });
+                    }
+                });
+            } else {
+                addSystemMessage("❌ Вы не в комнате и не в звонке");
+            }
+            messageInput.value = '';
+        }
+        
+        function addMessage(nick, text, avatarBase64 = null, type = 'normal') {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${type === 'private' ? 'private' : ''}`;
+            
+            const avatarHtml = avatarBase64 && avatarBase64 !== 'null'
+                ? `<img src="${avatarBase64}" style="width:100%;height:100%;object-fit:cover;">`
+                : (type === 'private' ? '🔒' : '💬');
+            
+            msgDiv.innerHTML = `
+                <div class="message-avatar">${avatarBase64 && avatarBase64 !== 'null' ? `<img src="${avatarBase64}">` : (type === 'private' ? '🔒' : '💬')}</div>
+                <div class="message-content">
+                    <div class="message-nick">${escapeHtml(nick)} ${type === 'private' ? '(личное)' : ''}</div>
+                    <div class="message-text">${escapeHtml(text)}</div>
+                </div>
+            `;
+            messagesEl.appendChild(msgDiv);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+        
+        function addSystemMessage(text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message system';
+            msgDiv.innerHTML = `<div class="message-content">📢 ${escapeHtml(text)}</div>`;
+            messagesEl.appendChild(msgDiv);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function updateUsersList() {
+            let html = '';
+            roomUsers.forEach((user, userId) => {
+                const isPrivate = privateWith === userId;
+                const avatarHtml = user.avatar && user.avatar !== 'null'
+                    ? `<img src="${user.avatar}" style="width:100%;height:100%;object-fit:cover;">`
+                    : '🎮';
+                html += `
+                    <div class="user-item" onclick="window.requestPrivateChat('${userId}')">
+                        <div class="user-avatar">${avatarHtml}</div>
+                        <div class="user-info">
+                            <div class="user-nick">${escapeHtml(user.nick || userId)}</div>
+                            <div class="user-id">${userId}</div>
+                        </div>
+                        ${isPrivate ? '<span class="private-badge">🔒 Лично</span>' : ''}
+                    </div>
+                `;
+            });
+            if (roomUsers.size === 0) {
+                html = '<div style="color:#888; text-align:center;">👻 Нет игроков в комнате</div>';
+            }
+            usersListEl.innerHTML = html;
+            userCountSpan.textContent = roomUsers.size;
+        }
+        
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text);
+            addSystemMessage(`📋 Скопировано: ${text}`);
+        }
+        
+        window.requestPrivateChat = requestPrivateChat;
+        window.copyToClipboard = copyToClipboard;
+        
+        // Обработчики
+        document.getElementById('joinRoomBtn').onclick = () => {
+            const code = document.getElementById('roomCode').value.trim().toUpperCase();
+            if (!code) {
+                addSystemMessage("❌ Введите код комнаты");
+                return;
+            }
+            if (code === myId) {
+                currentRoom = myId;
+                statusMessage.innerHTML = `🎮 Вы создали комнату: ${myId}`;
+                addSystemMessage(`✅ Комната ${myId} создана. Дайте этот код друзьям!`);
+                return;
+            }
+            joinRoom(code);
+        };
+        
+        document.getElementById('directCallBtn').onclick = () => {
+            const code = document.getElementById('directCallCode').value.trim().toUpperCase();
+            if (!code) {
+                addSystemMessage("❌ Введите код игрока");
+                return;
+            }
+            makeDirectCall(code);
+        };
+        
+        document.getElementById('sendBtn').onclick = sendMessage;
+        document.getElementById('micBtn').onclick = toggleMic;
+        document.getElementById('exitPrivateBtn').onclick = () => {
+            if (activeCall) endDirectCall();
+            else exitPrivateChat();
+        };
+        document.getElementById('leaveRoomBtn').onclick = leaveRoom;
+        document.getElementById('endCallBtn').onclick = endDirectCall;
+        messageInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+        
+        // Запуск
+        getIpAndGenerateId();
+    </script>
+</body>
+</html>
